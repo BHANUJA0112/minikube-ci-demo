@@ -1,0 +1,36 @@
+name: Minikube CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-k8s:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Minikube
+      uses: medyagh/setup-minikube@latest
+
+    - name: Start Minikube
+      run: |
+        minikube start --driver=docker
+        kubectl version --client
+        kubectl get nodes
+
+    - name: Apply Kubernetes manifests
+      run: |
+        kubectl apply -f k8s/
+        kubectl get all
+
+    - name: Run Tests (Optional)
+      run: |
+        # Example: Run a test pod or check service
+        kubectl run testpod --image=nginx
+        kubectl wait --for=condition=ready pod/testpod --timeout=60s
+        kubectl logs testpod
